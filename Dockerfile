@@ -24,16 +24,17 @@ FROM nginx:alpine
 # Copy built assets from build stage
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Add nginx config for SPA routing
+# Create nginx config template
 RUN echo 'server { \
-    listen 80; \
+    listen $PORT; \
     server_name localhost; \
     location / { \
         root /usr/share/nginx/html; \
         try_files $uri $uri/ /index.html; \
     } \
-}' > /etc/nginx/conf.d/default.conf
+}' > /etc/nginx/templates/default.conf.template
 
+# Railway provides PORT as env variable, nginx will substitute it
 EXPOSE 80
 
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["sh", "-c", "envsubst '$$PORT' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
