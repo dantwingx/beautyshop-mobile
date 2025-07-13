@@ -21,11 +21,15 @@ RUN npm run build
 # Production stage - serve with nginx
 FROM nginx:alpine
 
+# Install envsubst
+RUN apk add --no-cache gettext
+
 # Copy built assets from build stage
 COPY --from=build /app/dist /usr/share/nginx/html
 
 # Create nginx config template
-RUN echo 'server { \
+RUN mkdir -p /etc/nginx/templates && \
+    echo 'server { \
     listen $PORT; \
     server_name localhost; \
     location / { \
